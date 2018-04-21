@@ -30,19 +30,33 @@ void	        fill_map(t_map *map) {
     map[i] = (block_is_border(map_size, i))
       ? INDESTRUCTIBLE_BLOCK
       : random_block();
-    }
   }
 }
 
 
 t_map		random_block() {
-  int		rand = rand() % 101;
-  int		*other_blocks =
-    [
+  int		random = rand() % 101;
+  char		other_blocks[16];
 
-     ];
-  if (rand <= 50) return (t_map) EMPTY_BLOCK;
-  else return
+  other_blocks[0] = EMPTY_BLOCK_WITH_BOMB;
+  other_blocks[1] = EMPTY_BLOCK_WITH_B_PBOMB;
+  other_blocks[2] = EMPTY_BLOCK_WITH_M_PBOMB;
+  other_blocks[3] = EMPTY_BLOCK_WITH_B_NBOMB;
+  other_blocks[4] = EMPTY_BLOCK_WITH_M_NBOMB;
+  other_blocks[5] = EMPTY_BLOCK_WITH_B_SPEED;
+  other_blocks[6] = EMPTY_BLOCK_WITH_M_SPEED;
+  other_blocks[7] = DESTRUCTIBLE_BLOCK;
+  other_blocks[8] = DESTRUCTIBLE_BLOCK_WITH_BOMB;
+  other_blocks[9] = DESTRUCTIBLE_BLOCK_WITH_B_PBOMB;
+  other_blocks[10] = DESTRUCTIBLE_BLOCK_WITH_M_PBOMB;
+  other_blocks[11] = DESTRUCTIBLE_BLOCK_WITH_B_NBOMB;
+  other_blocks[12] = DESTRUCTIBLE_BLOCK_WITH_M_NBOMB;
+  other_blocks[13] = DESTRUCTIBLE_BLOCK_WITH_B_SPEED;
+  other_blocks[14] = DESTRUCTIBLE_BLOCK_WITH_M_SPEED;
+  other_blocks[15] = INDESTRUCTIBLE_BLOCK;
+
+  if (random <= 50) return (t_map) EMPTY_BLOCK;
+  else return (t_map) other_blocks[random % 16];
 }
 
 void		print_map(t_map *map) {
@@ -56,17 +70,16 @@ void		print_map(t_map *map) {
   puts("\n");
   for (i = 0; i < map_len; i++) {
     if ((i+1) % map_size == 0) {
-      printf("%c \n", map[i] + 48);
+      printf("%c \n", map[i] % 94 + 32);
     } else {
-      printf("%c ", map[i] + 48);
+      printf("%c ", map[i] % 94 + 32);
     }
   }
   puts("\n");
-
 }
 
 
-/* blockes (map cases) */
+/* blocks (map cases) */
 
 int		get_bit(int8_t byteFlag, int whichBit) {
   return (whichBit > 0 && whichBit <= 8)
@@ -126,4 +139,25 @@ block_content     block_get_content(t_map block) {
   else if (strcmp(bits678, "100"))  return B_SPEED;
   else if (strcmp(bits678, "101"))  return M_SPEED;
   else return CLEAR;
+}
+
+int		XY_to_map_index(int map_len, int x, int y) {
+  int		map_size;
+  int		map_index;
+
+  map_size = (int) sqrt((double) map_len);
+  map_index = y * (map_size - 1) + x;
+
+  return (map_index);
+}
+
+int		**map_index_to_XY(int map_len, int map_index) {
+  int		map_size;
+  int		XY[2];
+
+  map_size = (int) sqrt((double) map_len);
+  XY[0] = map_index % map_size;
+  XY[1] = map_index / map_size;
+
+  return &XY;
 }
