@@ -17,25 +17,25 @@ void			*connection_handler(void *_sock) {
   int			sock;
   int			read_size;
   char			*message;
-  char			client_message[2000];
+  char			client_message[1024];
 
-  sock = *(int*)_sock;
+  sock = *(int *) _sock;
 
-  message = "Greetings! I am your connection handler\n";
+  message = "Greetings! I am your connection handler \n";
   write(sock, message, strlen(message));
 
   message = "Now type something and i shall repeat what you type \n";
   write(sock, message, strlen(message));
 
   //Receive a message from client and send it back
-  while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 ) {
+  while((read_size = recv(sock, client_message, 2000, 0)) > 0 ) {
     write(sock , client_message , strlen(client_message));
   }
 
-  if(read_size == 0) {
+  if (read_size == 0) {
     puts("Client disconnected");
     fflush(stdout);
-  } else if(read_size == -1) {
+  } else if (read_size == -1) {
     perror("recv failed");
   }
 
@@ -83,13 +83,14 @@ int			main (int argc, char *argv []) {
   while( (new_socket = accept(sock, (struct sockaddr *)&client, (socklen_t*)&c)) ) {
     puts("Connection accepted");
 
+    pthread_t sniffer_thread;
+    new_sock = malloc(1);
+    *new_sock = new_socket;
+
     //Reply to the client
     message = "Hello Client , I have received your connection. But I have to go now, bye\n";
     write(new_socket , message , strlen(message));
 
-    pthread_t sniffer_thread;
-    new_sock = malloc(1);
-    *new_sock = new_socket;
 
     if (pthread_create(&sniffer_thread, NULL, connection_handler, (void*) new_sock) < 0) {
       perror("could not create thread");
@@ -97,7 +98,7 @@ int			main (int argc, char *argv []) {
     }
 
     //Now join the thread , so that we dont terminate before the thread
-    //pthread_join( sniffer_thread , NULL);
+    pthread_join( sniffer_thread , NULL);
     puts("Handler assigned");
   }
 

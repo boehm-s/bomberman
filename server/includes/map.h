@@ -41,7 +41,7 @@ void	        fill_map(t_map *map);
 void		print_map(t_map *map);
 
 int		XY_to_map_index(int map_len, int x, int y);
-int		**map_index_to_XY(int map_len, int map_index);
+int		*map_index_to_XY(int map_len, int map_index);
 
 /* blocks */
 

@@ -151,13 +151,13 @@ int		XY_to_map_index(int map_len, int x, int y) {
   return (map_index);
 }
 
-int		**map_index_to_XY(int map_len, int map_index) {
+int		*map_index_to_XY(int map_len, int map_index) {
   int		map_size;
-  int		XY[2];
+  int		*XY = malloc (sizeof (int) * 2);
 
   map_size = (int) sqrt((double) map_len);
-  XY[0] = map_index % map_size;
-  XY[1] = map_index / map_size;
+  XY[0] = (int) map_index % map_size;
+  XY[1] = (int) map_index / map_size;
 
-  return &XY;
+  return XY;
 }
