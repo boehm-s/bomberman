@@ -14,6 +14,9 @@ NAME	=	bomberman-server
 SRC	=	game.c		\
 		map.c	\
 		player.c	\
+		queue.c	\
+		messaging.c	\
+		socket_utils.c	\
 		main.c
 
 OBJ	=	$(SRC:%.c=%.o)
@@ -22,7 +25,7 @@ RM	=	rm -Rf
 
 GCFLAGS =	gcc -g03 -W -Wall -Werror
 
-LDFLAGS = 	-lczmq -lzmq -lpthread -lm
+LDFLAGS = 	-lpthread -lm
 
 $(NAME)	:	$(OBJ)
 		$(CC) $(SRC) -o $(NAME) $(CFLAGS) $(LDFLAGS)

@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <math.h>
+#include "includes/app_utils.h"
 #include "includes/map.h"
 
 t_map		*init_map(int map_size) {

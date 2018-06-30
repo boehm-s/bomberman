@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
+#include "includes/app_utils.h"
 #include "includes/game.h"
 
 

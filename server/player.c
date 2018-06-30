@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+#include "includes/app_utils.h"
 #include "includes/player.h"
 #include "includes/game.h"
 
