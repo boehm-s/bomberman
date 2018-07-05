@@ -11,15 +11,16 @@
 CC	=	gcc
 NAME	=	bomberman-client
 
-SRC	=	main.c
+SRC	=	client_utils.c	\
+		main.c
 
 OBJ	=	$(SRC:%.c=%.o)
 
 RM	=	rm -Rf
 
-GCFLAGS =	gcc -g03 -W -Wall -Werror
+GCFLAGS =	gcc -g03 -W -Wall -std=c99 # -Werror
 
-LDFLAGS = 	-lczmq -lzmq
+LDFLAGS = 	-lpthread
 
 $(NAME)	:	$(OBJ)
 		$(CC) $(SRC) -o $(NAME) $(CFLAGS) $(LDFLAGS)
