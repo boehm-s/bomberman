@@ -17,8 +17,9 @@ void bind_socket(struct sockaddr_in *server_addr, int socket_fd, long port)
 }
 
 
-void		start_app(int socket_fd) {
+void		start_app(int socket_fd, t_game *game) {
   t_msg_data	data;
+  t_game_msg_wrapper game_msg_wrap;
   pthread_t	connection_thread;
   pthread_t	messages_thread;
 
@@ -26,10 +27,15 @@ void		start_app(int socket_fd) {
   data.socket_fd = socket_fd;
   data.queue = queue_init();
   data.client_list_mutex = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t));
+
+  game_msg_wrap.game = game;
+  game_msg_wrap.msg_data = &data;
+
+  pthread_mutex_init(game->game_mutex, NULL);
   pthread_mutex_init(data.client_list_mutex, NULL);
 
   //Start thread to handle new client connections
-  if((pthread_create(&connection_thread, NULL, (void *)&new_client_handler, (void *)&data)) == 0) {
+  if((pthread_create(&connection_thread, NULL, (void *)&new_client_handler, (void *)&game_msg_wrap)) == 0) {
       fprintf(stderr, "Connection handler started\n");
   }
 
@@ -37,7 +43,7 @@ void		start_app(int socket_fd) {
   FD_SET(socket_fd, &(data.server_read_fds));
 
   //Start thread to handle messages received
-  if((pthread_create(&messages_thread, NULL, (void *)&message_handler, (void *)&data)) == 0) {
+  if((pthread_create(&messages_thread, NULL, (void *)&message_handler, (void *)&game_msg_wrap)) == 0) {
     fprintf(stderr, "Message handler started\n");
   }
 

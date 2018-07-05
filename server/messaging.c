@@ -1,11 +1,15 @@
 #include "includes/app_utils.h"
 #include "includes/messaging.h"
+#include "includes/game.h"
 
 static int game_started = 0;
 
 //Thread to handle new connections. Adds client's fd to list of client fds and spawns a new clientHandler thread for it
-void		*new_client_handler(void *data) {
-  t_msg_data	*msg_data = (t_msg_data *) data;
+void                    *new_client_handler(void *data) {
+  t_game_msg_wrapper	*game_msg_wrap = (t_game_msg_wrapper *) data;
+  t_msg_data            *msg_data = game_msg_wrap->msg_data;
+  t_game            *game = game_msg_wrap->game;
+
   int		*client_sockets = msg_data->client_sockets;
 
   while(42) {
@@ -15,7 +19,7 @@ void		*new_client_handler(void *data) {
 
       //Obtain lock on clients list and add new client in
       pthread_mutex_lock(msg_data->client_list_mutex);
-      if(msg_data->client_count < MAX_BUFFER  && msg_data->client_count < MAX_PLAYER ) {
+      if(msg_data->client_count < MAX_BUFFER  && msg_data->client_count < MAX_PLAYERS ) {
 	//Add new client to list
 	for(int i = 0; i < MAX_BUFFER; i++) {
 	  if(!FD_ISSET(msg_data->client_sockets[i], &(msg_data->server_read_fds))) {
@@ -23,6 +27,16 @@ void		*new_client_handler(void *data) {
 	    i = MAX_BUFFER;
 	  }
 	}
+
+        // add client to players (lock game mutex)
+        pthread_mutex_lock(game->game_mutex);
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+          if (game->player_infos[i].socket == 0) {
+            game->player_infos[i].socket = client_socket_fd;
+          }
+        }
+	pthread_mutex_unlock(game->game_mutex);
+
 
 	FD_SET(client_socket_fd, &(msg_data->server_read_fds));
 
@@ -97,9 +111,11 @@ void *client_handler(void *_c_h) {
 }
 
 //The "consumer" -- waits for the queue to have messages then takes them out and broadcasts to clients
-void		*message_handler(void *data) {
-  t_msg_data	*msg_data = (t_msg_data *)data;
-  t_queue       *q = msg_data->queue;
+void                    *message_handler(void *data) {
+  t_game_msg_wrapper	*game_msg_wrap = (t_game_msg_wrapper *) data;
+  t_msg_data            *msg_data = game_msg_wrap->msg_data;
+  t_game                *game = game_msg_wrap->game;
+  t_queue               *q = msg_data->queue;
   /* int		*client_sockets = msg_data->client_sockets; */
 
   while(42) {
@@ -108,15 +124,32 @@ void		*message_handler(void *data) {
     while(q->empty) {
       pthread_cond_wait(q->not_empty, q->mutex);
     }
-    char* msg = queue_pop(q);
+    char *msg = queue_pop(q);
+    char **split_msg = str_split(msg, ':');
+    char *user = split_msg[0];
+
     pthread_mutex_unlock(q->mutex);
     pthread_cond_signal(q->not_full);
 
 
     fprintf(stderr, "msg received : %s\n", msg);
 
+    // add client to players (lock game mutex)
+    pthread_mutex_lock(game->game_mutex);
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+      if (game->player_infos[i].connected != 1
+          && game->player_infos[i].socket == msg_data->socket_fd) {
+        game->player_infos[i].connected = 0;
+        game->player_infos[i].name = user;
+      }
+    }
+    pthread_mutex_unlock(game->game_mutex);
+    /* game->player_infos[i].name = user; */
+
+
     if (game_started != 0) {
-      /* game_handle_message(msg); */
+      game_handle_message(msg, game);
     }
   }
 }

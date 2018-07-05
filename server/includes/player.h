@@ -7,12 +7,21 @@
 #define DIRECTION_BOTTOM 1
 #define DIRECTION_LEFT 2
 #define DIRECTION_RIGHT 3
+
+#define TOP 0
+#define BOTTOM 1
+#define LEFT 2
+#define RIGHT 3
+
+
 #define START_SPEED 50
 #define MAX_SPEED 250
 #define START_BOMB 3
 #define MAX_BOMB 10
 
 typedef struct 	s_player_infos {
+  char                  *name;
+  int                   socket;
   char  		connected;
   char  		alive;
   int   		x_pos;

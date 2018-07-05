@@ -1,7 +1,9 @@
 #ifndef APP_UTILS_H
 #define APP_UTILS_H
 
+#define UNUSED(x) (void)(x)
 #define MAX_BUFFER 1024
+#define MAX_PLAYERS 4
 #define MAX_PLAYER 4
 
 #include <stdio.h>
@@ -18,6 +20,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <assert.h>
 
-
+char** str_split(char* a_str, const char a_delim);
 #endif

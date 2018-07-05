@@ -7,6 +7,8 @@
 #include "includes/game.h"
 
 
+
+
 int			main (int argc, char *argv []) {
   t_game		*game;
   struct sockaddr_in	server_addr;
@@ -24,8 +26,8 @@ int			main (int argc, char *argv []) {
   port = argc == 2 ? strtol(argv[1], NULL, 0) : PORT_NUMBER;
 
   if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-      perror("Socket creation failed");
-      exit(1);
+    perror("Socket creation failed");
+    exit(1);
   }
 
   bind_socket(&server_addr, socket_fd, port);
@@ -34,9 +36,9 @@ int			main (int argc, char *argv []) {
     exit(1);
   }
 
-  start_app(socket_fd);
-  close(socket_fd);
+  start_app(socket_fd, game);
 
+  close(socket_fd);
 
   /* --------------------------------------------------------------------------------------------------------------- */
   return 0;

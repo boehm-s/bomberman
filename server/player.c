@@ -12,6 +12,7 @@ t_player_infos		*init_players(t_map *map) {
   players = malloc(sizeof(t_player_infos) * MAX_PLAYERS);
 
   for (i = 0; i < MAX_PLAYERS; i++) {
+    players[i].socket = 0;
     players[i].connected = 1;
     players[i].alive = 0;
     players[i].x_pos = i % 2 == 0 ? 1 : (map_size - 2);
@@ -31,7 +32,7 @@ void		print_players(t_player_infos *players) {
   int		i;
 
   puts("/------------------------------------------------------\\");
-  printf("|   NAME   |  X,Y  | DIRECTION | SPEED | BOMBS | FRAGS |\n");
+  puts("|   NAME   |  X,Y  | DIRECTION | SPEED | BOMBS | FRAGS |");
   puts("|------------------------------------------------------|");
   for (i = 0; i < MAX_PLAYERS; i++) {
     printf("| player %i | %02d,%02d |     %i     |  %03d  | %02d/%02d |  %i    |\n", i, players[i].x_pos, players[i].y_pos, players[i].current_dir, players[i].current_speed, players[i].bombs_left, players[i].bombs_capacity, players[i].frags);

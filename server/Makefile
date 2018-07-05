@@ -12,9 +12,9 @@ CC	=	gcc
 NAME	=	bomberman-server
 
 SRC	=	game.c		\
-		map.c	\
+		map.c		\
 		player.c	\
-		queue.c	\
+		queue.c		\
 		messaging.c	\
 		socket_utils.c	\
 		main.c
