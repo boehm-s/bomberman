@@ -1,11 +1,11 @@
 #include "includes/app_utils.h"
 #include "includes/client_utils.h"
 
-int main(int argc, char *argv[]) {
-  char *name;
-  struct sockaddr_in server_addr;
-  struct hostent *host;
-  long port;
+int			main(int argc, char *argv[]) {
+  char			*name;
+  struct sockaddr_in	server_addr;
+  struct hostent	*host;
+  long			port;
 
   if(argc != 4) {
     fprintf(stderr, "./client [username] [host] [port]\n");
@@ -33,44 +33,39 @@ int main(int argc, char *argv[]) {
 }
 
 //Main loop to take in chat input and display output
-void game_loop(char *name, int socket_fd) {
-  fd_set clientFds;
-  char chatMsg[MAX_BUFFER];
-  char chatBuffer[MAX_BUFFER], msgBuffer[MAX_BUFFER];
+void			game_loop(char *name, int socket_fd) {
+  fd_set	        client_fds;
+  char			chat_msg[MAX_BUFFER];
+  char			chat_buffer[MAX_BUFFER];
+  char			msg_buffer[MAX_BUFFER];
 
   while(1) {
     //Reset the fd set each time since select() modifies it
-    FD_ZERO(&clientFds);
-    FD_SET(socket_fd, &clientFds);
-    FD_SET(0, &clientFds);
-    if(select(FD_SETSIZE, &clientFds, NULL, NULL, NULL) != -1) //wait for an available fd
-      {
-	for(int fd = 0; fd < FD_SETSIZE; fd++)
-	  {
-	    if(FD_ISSET(fd, &clientFds))
-	      {
-		if(fd == socket_fd) //receive data from server
-		  {
-		    int numBytesRead = read(socket_fd, msgBuffer, MAX_BUFFER - 1);
-		    msgBuffer[numBytesRead] = '\0';
-		    printf("%s", msgBuffer);
-		    memset(&msgBuffer, 0, sizeof(msgBuffer));
-		  }
-		else if(fd == 0) //read from keyboard (stdin) and send to server
-		  {
-		    fgets(chatBuffer, MAX_BUFFER - 1, stdin);
-		    if(strcmp(chatBuffer, "/exit\n") == 0)
-		      interrupt_handler(-1); //Reuse the interrupt_handler function to disconnect the client
-		    else
-		      {
-			build_message(chatMsg, name, chatBuffer);
-			if(write(socket_fd, chatMsg, MAX_BUFFER - 1) == -1) perror("write failed: ");
-			//printf("%s", chatMsg);
-			memset(&chatBuffer, 0, sizeof(chatBuffer));
-		      }
-		  }
-	      }
+    FD_ZERO(&client_fds);
+    FD_SET(socket_fd, &client_fds);
+    FD_SET(0, &client_fds);
+    if (select(FD_SETSIZE, &client_fds, NULL, NULL, NULL) != -1) { // wait for an available fd
+      for (int fd = 0; fd < FD_SETSIZE; fd++) {
+	if (FD_ISSET(fd, &client_fds)) {
+	  if (fd == socket_fd) { //receive data from server
+	    int numBytesRead = read(socket_fd, msg_buffer, MAX_BUFFER - 1);
+	    msg_buffer[numBytesRead] = '\0';
+	    printf("%s", msg_buffer);
+	    memset(&msg_buffer, 0, sizeof(msg_buffer));
 	  }
+	  else if(fd == 0) {  //read from keyboard (stdin) and send to server
+	    fgets(chat_buffer, MAX_BUFFER - 1, stdin);
+	    if(strcmp(chat_buffer, "/exit\n") == 0)
+	      interrupt_handler(-1); //Reuse the interrupt_handler function to disconnect the client
+	    else {
+	      build_message(chat_msg, name, chat_buffer);
+	      if(write(socket_fd, chat_msg, MAX_BUFFER - 1) == -1) perror("write failed: ");
+	      //printf("%s", chat_msg);
+	      memset(&chat_buffer, 0, sizeof(chat_buffer));
+	    }
+	  }
+	}
       }
+    }
   }
 }

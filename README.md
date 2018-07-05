@@ -3,10 +3,7 @@
 School project
 
 
-## Install deps
+## Notes
 
-### CZMQ
-
-```
-username@PC-ID:~/install$  sudo apt-get install -y libzmq3-dev libczmq3 libczmq-dev
-```
+- When a client connect to the server, he has to send a message (the content is irrelevant).
+- need to create a broadcast function

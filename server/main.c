@@ -41,3 +41,8 @@ int			main (int argc, char *argv []) {
   /* --------------------------------------------------------------------------------------------------------------- */
   return 0;
 }
+
+
+	  /* if (chat_data->client_count == MAX_PLAYER) { */
+	  /*   start_game(chat_data); */
+	  /* } */

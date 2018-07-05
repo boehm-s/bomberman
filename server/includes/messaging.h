@@ -10,12 +10,12 @@ typedef struct		s_msg_data {
   int			client_sockets[MAX_BUFFER];
   pthread_mutex_t	*client_list_mutex;
   t_queue	        *queue;
-} t_msg_data; // chatDataVars
+} t_msg_data;
 
 typedef struct		s_client_handler {
   t_msg_data		*data;
   int			client_socket_fd;
-} t_client_handler; // clientHandlerVars
+} t_client_handler;
 
 
 void			*new_client_handler(void *data);

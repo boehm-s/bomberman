@@ -31,7 +31,7 @@ void		start_app(int socket_fd) {
   //Start thread to handle new client connections
   if((pthread_create(&connection_thread, NULL, (void *)&new_client_handler, (void *)&data)) == 0) {
       fprintf(stderr, "Connection handler started\n");
-    }
+  }
 
   FD_ZERO(&(data.server_read_fds));
   FD_SET(socket_fd, &(data.server_read_fds));

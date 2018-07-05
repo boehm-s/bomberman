@@ -2,6 +2,7 @@
 #define APP_UTILS_H
 
 #define MAX_BUFFER 1024
+#define MAX_PLAYER 4
 
 #include <stdio.h>
 #include <stdlib.h>

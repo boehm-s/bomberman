@@ -1,51 +1,69 @@
 #include "includes/app_utils.h"
 #include "includes/messaging.h"
 
-//Thread to handle new connections. Adds client's fd to list of client fds and spawns a new clientHandler thread for it
+static int game_started = 0;
 
+//Thread to handle new connections. Adds client's fd to list of client fds and spawns a new clientHandler thread for it
 void		*new_client_handler(void *data) {
-  t_msg_data	*chat_data = (t_msg_data *) data;
+  t_msg_data	*msg_data = (t_msg_data *) data;
+  int		*client_sockets = msg_data->client_sockets;
 
   while(42) {
-    int client_socket_fd = accept(chat_data->socket_fd, NULL, NULL);
+    int client_socket_fd = accept(msg_data->socket_fd, NULL, NULL);
     if(client_socket_fd > 0) {
       fprintf(stderr, "Server accepted new client. Socket: %d\n", client_socket_fd);
 
       //Obtain lock on clients list and add new client in
-      pthread_mutex_lock(chat_data->client_list_mutex);
-      if(chat_data->client_count < MAX_BUFFER) {
+      pthread_mutex_lock(msg_data->client_list_mutex);
+      if(msg_data->client_count < MAX_BUFFER  && msg_data->client_count < MAX_PLAYER ) {
 	//Add new client to list
 	for(int i = 0; i < MAX_BUFFER; i++) {
-	  if(!FD_ISSET(chat_data->client_sockets[i], &(chat_data->server_read_fds))) {
-	    chat_data->client_sockets[i] = client_socket_fd;
+	  if(!FD_ISSET(msg_data->client_sockets[i], &(msg_data->server_read_fds))) {
+	    msg_data->client_sockets[i] = client_socket_fd;
 	    i = MAX_BUFFER;
 	  }
 	}
 
-	FD_SET(client_socket_fd, &(chat_data->server_read_fds));
+	FD_SET(client_socket_fd, &(msg_data->server_read_fds));
 
 	//Spawn new thread to handle client's messages
 	t_client_handler c_h;
 	c_h.client_socket_fd = client_socket_fd;
-	c_h.data = chat_data;
+	c_h.data = msg_data;
 
 	pthread_t client_thread;
 	if((pthread_create(&client_thread, NULL, (void *)&client_handler, (void *)&c_h)) == 0) {
-	  chat_data->client_count++;
-	  fprintf(stderr, "Client has joined chat. Socket: %d\n", client_socket_fd);
+	  msg_data->client_count++;
+
+          // 'ROOM' IS FULL
+          if (msg_data->client_count == MAX_PLAYER && game_started == 0) {
+            fprintf(stderr, "GAME JUST STARTED !!!\n");
+            // Broadcast message to all connected clients
+            for(int i = 0; i < msg_data->client_count; i++) {
+              int socket = client_sockets[i];
+              if(socket != 0 && write(socket, "GAME JUST STARTED !!!\n", 22 /* MAX_BUFFER - 1 */) == -1)
+                perror("Socket write failed: ");
+            }
+            game_started = 1;
+          }
+
+          fprintf(stderr, "Client has joined chat. Socket: %d\n", client_socket_fd);
 	}
 	else
 	  close(client_socket_fd);
+      } else {
+	fprintf(stderr, "CANNOT ACCEPT MORE CLIENTS ! \n");
+	close(client_socket_fd);
+	pthread_mutex_unlock(msg_data->client_list_mutex);
       }
-      pthread_mutex_unlock(chat_data->client_list_mutex);
+      pthread_mutex_unlock(msg_data->client_list_mutex);
     }
   }
 }
 
 
 //The "producer" -- Listens for messages from client to add to message queue
-void *client_handler(void *_c_h)
-{
+void *client_handler(void *_c_h) {
   t_client_handler *c_h = (t_client_handler *)_c_h;
   t_msg_data *data = (t_msg_data *)c_h->data;
 
@@ -82,26 +100,25 @@ void *client_handler(void *_c_h)
 void		*message_handler(void *data) {
   t_msg_data	*msg_data = (t_msg_data *)data;
   t_queue       *q = msg_data->queue;
-  int		*client_sockets = msg_data->client_sockets;
+  /* int		*client_sockets = msg_data->client_sockets; */
 
   while(42) {
-      //Obtain lock and pop message from queue when not empty
-      pthread_mutex_lock(q->mutex);
-      while(q->empty) {
-	  pthread_cond_wait(q->not_empty, q->mutex);
-      }
-      char* msg = queue_pop(q);
-      pthread_mutex_unlock(q->mutex);
-      pthread_cond_signal(q->not_full);
-
-      //Broadcast message to all connected clients
-      fprintf(stderr, "Broadcasting message: %s\n", msg);
-      for(int i = 0; i < msg_data->client_count; i++) {
-	  int socket = client_sockets[i];
-	  if(socket != 0 && write(socket, msg, MAX_BUFFER - 1) == -1)
-	    perror("Socket write failed: ");
-        }
+    //Obtain lock and pop message from queue when not empty
+    pthread_mutex_lock(q->mutex);
+    while(q->empty) {
+      pthread_cond_wait(q->not_empty, q->mutex);
     }
+    char* msg = queue_pop(q);
+    pthread_mutex_unlock(q->mutex);
+    pthread_cond_signal(q->not_full);
+
+
+    fprintf(stderr, "msg received : %s\n", msg);
+
+    if (game_started != 0) {
+      /* game_handle_message(msg); */
+    }
+  }
 }
 
 
@@ -109,12 +126,12 @@ void		*message_handler(void *data) {
 void rm_client(t_msg_data *data, int client_socket_fd) {
   pthread_mutex_lock(data->client_list_mutex);
   for(int i = 0; i < MAX_BUFFER; i++) {
-      if(data->client_sockets[i] == client_socket_fd) {
-	  data->client_sockets[i] = 0;
-	  close(client_socket_fd);
-	  data->client_count--;
-	  i = MAX_BUFFER;
-        }
+    if(data->client_sockets[i] == client_socket_fd) {
+      data->client_sockets[i] = 0;
+      close(client_socket_fd);
+      data->client_count--;
+      i = MAX_BUFFER;
     }
+  }
   pthread_mutex_unlock(data->client_list_mutex);
 }
