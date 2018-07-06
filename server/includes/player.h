@@ -32,6 +32,7 @@ typedef struct 	s_player_infos {
   int   		bombs_left;
   int   		bombs_capacity;
   int   		frags;
+  char                  *last_cmd;
 } t_player_infos;
 
 t_player_infos  *init_players(t_map *map);

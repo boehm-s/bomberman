@@ -59,6 +59,7 @@ void                    *new_client_handler(void *data) {
                 perror("Socket write failed: ");
             }
             game_started = 1;
+            game->game_started = 1;
           }
 
           fprintf(stderr, "Client has joined chat. Socket: %d\n", client_socket_fd);

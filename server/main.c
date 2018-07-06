@@ -38,13 +38,9 @@ int			main (int argc, char *argv []) {
 
   start_app(socket_fd, game);
 
+
   close(socket_fd);
 
   /* --------------------------------------------------------------------------------------------------------------- */
   return 0;
 }
-
-
-	  /* if (chat_data->client_count == MAX_PLAYER) { */
-	  /*   start_game(chat_data); */
-	  /* } */

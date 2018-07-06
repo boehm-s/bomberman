@@ -23,6 +23,7 @@ t_player_infos		*init_players(t_map *map) {
     players[i].bombs_left = START_BOMB;
     players[i].bombs_capacity = MAX_BOMB;
     players[i].frags = 0;
+    players[i].last_cmd = "";
   }
 
   return (players);

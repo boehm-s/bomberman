@@ -1,6 +1,21 @@
 #include "includes/app_utils.h"
 #include "includes/game.h"
 
+/* Arrange the N elements of ARRAY in random order.
+   Only effective if N is much smaller than RAND_MAX;
+   if this may not be the case, use a better random
+   number generator. */
+void shuffle (int *array, size_t n) {
+  if (n > 1)  {
+    size_t i;
+    for (i = 0; i < n - 1; i++) {
+      size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
+      int t = array[j];
+      array[j] = array[i];
+      array[i] = t;
+    }
+  }
+}
 char**                  str_split(char* a_str, const char a_delim) {
   char**                result    = 0;
   size_t                count     = 0;
@@ -48,6 +63,11 @@ t_game			*init_game() {
   game = malloc(sizeof(t_game));
   game->map = map;
   game->player_infos = init_players(game->map);
+  game->game_mutex = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t));
+  game->game_started = 0;
+
+  pthread_mutex_init(game->game_mutex, NULL);
+
 
   print_map(game->map);
   print_players(game->player_infos);
@@ -55,32 +75,44 @@ t_game			*init_game() {
   return (game);
 }
 
+void                    game_loop(void *data) {
+  t_game                *game = (t_game *) data;
+
+  while (42) {
+    if (game->game_started == 1) {
+      int player_indexes[4] = {0,1,2,3};
+      shuffle(player_indexes, 4);
+
+      pthread_mutex_lock(game->game_mutex);
+      // exec each player last recieved command
+      for (int i = 0; i < MAX_PLAYERS; i++) {
+        exec_player_cmd(game, game->player_infos[player_indexes[i]]);
+      }
+
+      // broadcast the modified game info
+
+
+      pthread_mutex_unlock(game->game_mutex);
+    }
+    usleep(GAME_LOOP_DELAY * 1000);
+  }
+}
+
 void			game_handle_message(char *msg, t_game *game) {
   char                  **split_msg = str_split(msg, ':');
   char                  *user = split_msg[0];
   char                  *cmd = split_msg[1];
+  t_player_infos        *player;
 
-  if (cmd[0] == 'd') { // change user  direction
-    change_user_direction(user, cmd[1]);
-  } else if (cmd[0] == 'm') {
-    move_user_direction(user, cmd[1]);
+  pthread_mutex_lock(game->game_mutex);
+  player = get_player_by_name(game, user);
+
+  if (player != NULL) {
+    player->last_cmd = cmd;
   }
-
-  UNUSED(split_msg);
-  UNUSED(user);
-  UNUSED(cmd);
-  UNUSED(game);
+  pthread_mutex_lock(game->game_mutex);
 }
 
-void move_user_direction(char *user, char direction) {
-  UNUSED(user);
-  UNUSED(direction);
-}
-
-void change_user_direction(char *user, char direction) {
-  UNUSED(user);
-  UNUSED(direction);
-}
 
 t_player_infos          *get_player_by_name(t_game *game, char *name) {
     pthread_mutex_lock(game->game_mutex);
@@ -91,4 +123,10 @@ t_player_infos          *get_player_by_name(t_game *game, char *name) {
     pthread_mutex_unlock(game->game_mutex);
 
     return NULL;
+}
+
+
+void                    exec_player_cmd(t_game *game, t_player_infos player) {
+  UNUSED(game);
+  UNUSED(player);
 }

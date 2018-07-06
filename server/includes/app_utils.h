@@ -23,4 +23,6 @@
 #include <assert.h>
 
 char** str_split(char* a_str, const char a_delim);
+void shuffle (int *array, size_t n);
+
 #endif

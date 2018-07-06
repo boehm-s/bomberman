@@ -22,6 +22,7 @@ void		start_app(int socket_fd, t_game *game) {
   t_game_msg_wrapper game_msg_wrap;
   pthread_t	connection_thread;
   pthread_t	messages_thread;
+  pthread_t     game_loop_thread;
 
   data.client_count = 0;
   data.socket_fd = socket_fd;
@@ -31,7 +32,6 @@ void		start_app(int socket_fd, t_game *game) {
   game_msg_wrap.game = game;
   game_msg_wrap.msg_data = &data;
 
-  pthread_mutex_init(game->game_mutex, NULL);
   pthread_mutex_init(data.client_list_mutex, NULL);
 
   //Start thread to handle new client connections
@@ -45,6 +45,11 @@ void		start_app(int socket_fd, t_game *game) {
   //Start thread to handle messages received
   if((pthread_create(&messages_thread, NULL, (void *)&message_handler, (void *)&game_msg_wrap)) == 0) {
     fprintf(stderr, "Message handler started\n");
+  }
+
+  //start the game loop thread
+  if((pthread_create(&game_loop_thread, NULL, (void *)&game_loop , (void *)game)) == 0) {
+    fprintf(stderr, "Game loop started\n");
   }
 
   pthread_join(connection_thread, NULL);

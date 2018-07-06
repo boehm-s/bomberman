@@ -13,13 +13,6 @@ School project
 
 ## commands
 
-### move
-
-MOVE TOP m0
-MOVE BOTTOM m1
-MOVE LEFT m2
-MOVE RIGHT m3
-
 ### directions
 
 DIRECTION TOP d0
