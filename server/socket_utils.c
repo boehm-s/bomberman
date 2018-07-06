@@ -48,7 +48,7 @@ void		start_app(int socket_fd, t_game *game) {
   }
 
   //start the game loop thread
-  if((pthread_create(&game_loop_thread, NULL, (void *)&game_loop , (void *)game)) == 0) {
+  if((pthread_create(&game_loop_thread, NULL, (void *)&game_loop , (void *)game_msg_wrap)) == 0) {
     fprintf(stderr, "Game loop started\n");
   }
 

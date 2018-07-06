@@ -76,7 +76,9 @@ t_game			*init_game() {
 }
 
 void                    game_loop(void *data) {
-  t_game                *game = (t_game *) data;
+  t_game_msg_wrapper	*game_msg_wrap = (t_game_msg_wrapper *) data;
+  t_msg_data            *msg_data = game_msg_wrap->msg_data;
+  t_game                *game = game_msg_wrap->game;
 
   while (42) {
     if (game->game_started == 1) {
@@ -86,10 +88,16 @@ void                    game_loop(void *data) {
       pthread_mutex_lock(game->game_mutex);
       // exec each player last recieved command
       for (int i = 0; i < MAX_PLAYERS; i++) {
-        exec_player_cmd(game, game->player_infos[player_indexes[i]]);
+        exec_player_cmd(game, &game->player_infos[player_indexes[i]]);
       }
 
       // broadcast the modified game info
+      char *game_info_str = game_to_str(game);
+      for(int i = 0; i < msg_data->client_count; i++) {
+	int socket = client_sockets[i];
+	if(socket != 0 && write(socket, game_info_str, strlen(game_info_str) -1) == -1)
+	  perror("Socket write failed: ");
+      }
 
 
       pthread_mutex_unlock(game->game_mutex);
@@ -126,7 +134,22 @@ t_player_infos          *get_player_by_name(t_game *game, char *name) {
 }
 
 
-void                    exec_player_cmd(t_game *game, t_player_infos player) {
-  UNUSED(game);
-  UNUSED(player);
+void                    exec_player_cmd(t_game *game, t_player_infos *player) {
+    pthread_mutex_lock(game->game_mutex);
+    switch (player->last_cmd[0]) {
+    case 'd' :
+      player->current_dir = player->last_cmd[1] - '0';
+      break;
+    }
+    pthread_mutex_unlock(game->game_mutex);
+}
+
+
+char			*game_to_str(t_game *game) {
+  char			*buf;
+  size_t		sz;
+
+  sz = snprintf(NULL, 0, "");
+  buf = (char *)malloc(sz + 1); /* make sure you check for != NULL in real code */
+  snprintf(buf, sz+1, "");
 }

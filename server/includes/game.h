@@ -29,8 +29,8 @@ typedef struct          s_game_msg_wrapper {
 t_game			*init_game();
 void                    game_loop(void *data);
 void			game_handle_message(char *msg, t_game *game);
-void                    exec_player_cmd(t_game *game, t_player_infos player);
+void                    exec_player_cmd(t_game *game, t_player_infos *player);
 /* int			change_user_direction(t_game *game, char *user, char direction); */
 t_player_infos          *get_player_by_name(t_game *game, char *name);
-
+char			*game_to_str(t_game *game);
 #endif
